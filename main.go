@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/google/go-github/github"
+	"github.com/pkg/browser"
 	"golang.org/x/oauth2"
 	"net/http"
 	"net/url"
@@ -112,10 +113,10 @@ func queryParam(key, value string) string {
 	return key + "=" + url.QueryEscape(value)
 }
 
-func run(repo, baseURL string, debug bool) (string, error) {
+func run(repo, baseURL string, debug, printURL bool) error {
 	slug := strings.SplitN(repo, "/", 2)
 	if len(slug) <= 1 {
-		return "", fmt.Errorf("Repository %q is invalid. Please specify in user/repo format", repo)
+		return fmt.Errorf("Repository %q is invalid. Please specify in user/repo format", repo)
 	}
 
 	token := os.Getenv("GITHUB_TOKEN")
@@ -129,7 +130,7 @@ func run(repo, baseURL string, debug bool) (string, error) {
 
 	files, dirs, err := getContentsRecursive(ctx, api.Repositories, slug[0], slug[1], "")
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	sortContentsByPath(dirs)
@@ -137,7 +138,7 @@ func run(repo, baseURL string, debug bool) (string, error) {
 
 	u, err := url.Parse(baseURL)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	params := url.Values{}
@@ -158,23 +159,28 @@ func run(repo, baseURL string, debug bool) (string, error) {
 	}
 
 	for _, file := range files {
-		v := fmt.Sprintf("/usr/local/share/vim/%s;%s", file.GetPath(), file.GetDownloadURL())
+		v := fmt.Sprintf("/usr/local/share/vim/%s=%s", file.GetPath(), file.GetDownloadURL())
 		params.Add("file", v)
 	}
 	u.RawQuery = params.Encode()
-	return u.String(), nil
+
+	if printURL {
+		fmt.Print(u.String())
+		return nil
+	}
+
+	return browser.OpenURL(u.String())
 }
 
 func main() {
 	repo := flag.String("repo", "", "Slug ('user/repo') of your Vim plugin (required)")
 	baseURL := flag.String("base", "https://rhysd.github.io/vim.wasm/", "Base URL where vim.wasm is hosted")
 	debug := flag.Bool("debug", false, "Enable debug logging")
+	printURL := flag.Bool("url", false, "Print URL to stdout")
 	flag.Parse()
 
-	u, err := run(*repo, *baseURL, *debug)
-	if err != nil {
+	if err := run(*repo, *baseURL, *debug, *printURL); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-	fmt.Print(u)
 }
