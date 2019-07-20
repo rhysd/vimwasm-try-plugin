@@ -172,11 +172,27 @@ func run(repo, baseURL string, debug, printURL bool) error {
 	return browser.OpenURL(u.String())
 }
 
+const usageHeader = `Usage: vimwasm-try-plugin {flags}
+
+  vimwasm-try-plugin is a URL generator to try Vim plugin hosted on GitHub with
+  https://rhysd.github.io/vim.wasm. The Vim was compiled to WebAssembly and runs
+  in your browser. All plugin files will be fetched on memory and loaded by Vim.
+
+  You can try Vim plugin without installing it on browser.
+
+Flags:`
+
+func usage() {
+	fmt.Fprintln(os.Stderr, usageHeader)
+	flag.PrintDefaults()
+}
+
 func main() {
 	repo := flag.String("repo", "", "Slug ('user/repo') of your Vim plugin (required)")
 	baseURL := flag.String("base", "https://rhysd.github.io/vim.wasm/", "Base URL where vim.wasm is hosted")
 	debug := flag.Bool("debug", false, "Enable debug logging")
-	printURL := flag.Bool("url", false, "Print URL to stdout")
+	printURL := flag.Bool("url", false, "Print URL to stdout instead of opening it in browser")
+	flag.Usage = usage
 	flag.Parse()
 
 	if err := run(*repo, *baseURL, *debug, *printURL); err != nil {
