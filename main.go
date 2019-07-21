@@ -17,7 +17,7 @@ import (
 var vimDirs = []string{
 	"autoload",
 	"colors",
-	// "compiler", This is unnecessary since because shell commands are not available on vim.wasm
+	// "compiler", This is unnecessary since shell commands are not available on vim.wasm
 	"ftplugin",
 	"indent",
 	"plugin",
@@ -32,6 +32,13 @@ var existingDirs = map[string]struct{}{
 	"indent":   struct{}{},
 	"plugin":   struct{}{},
 	"syntax":   struct{}{},
+}
+
+type cliOptions struct {
+	repo     string
+	baseUrl  string
+	debug    bool
+	printUrl bool
 }
 
 func isVimDirPath(p string) bool {
@@ -109,14 +116,10 @@ func dirContainsVimFile(path string, files []*github.RepositoryContent) bool {
 	return false
 }
 
-func queryParam(key, value string) string {
-	return key + "=" + url.QueryEscape(value)
-}
-
-func run(repo, baseURL string, debug, printURL bool) error {
-	slug := strings.SplitN(repo, "/", 2)
+func run(o *cliOptions) error {
+	slug := strings.SplitN(o.repo, "/", 2)
 	if len(slug) <= 1 {
-		return fmt.Errorf("Repository %q is invalid. Please specify in user/repo format", repo)
+		return fmt.Errorf("Repository %q is invalid. Please specify in user/repo format", o.repo)
 	}
 
 	token := os.Getenv("GITHUB_TOKEN")
@@ -136,13 +139,13 @@ func run(repo, baseURL string, debug, printURL bool) error {
 	sortContentsByPath(dirs)
 	sortContentsByPath(files)
 
-	u, err := url.Parse(baseURL)
+	u, err := url.Parse(o.baseUrl)
 	if err != nil {
 		return err
 	}
 
 	params := url.Values{}
-	if debug {
+	if o.debug {
 		params.Set("debug", "")
 	}
 
@@ -164,7 +167,7 @@ func run(repo, baseURL string, debug, printURL bool) error {
 	}
 	u.RawQuery = params.Encode()
 
-	if printURL {
+	if o.printUrl {
 		fmt.Print(u.String())
 		return nil
 	}
@@ -188,14 +191,15 @@ func usage() {
 }
 
 func main() {
-	repo := flag.String("repo", "", "Slug ('user/repo') of your Vim plugin (required)")
-	baseURL := flag.String("base", "https://rhysd.github.io/vim.wasm/", "Base URL where vim.wasm is hosted")
-	debug := flag.Bool("debug", false, "Enable debug logging")
-	printURL := flag.Bool("url", false, "Print URL to stdout instead of opening it in browser")
+	o := &cliOptions{}
+	flag.StringVar(&o.repo, "repo", "", "Slug ('user/repo') of your Vim plugin (required)")
+	flag.StringVar(&o.baseUrl, "base", "https://rhysd.github.io/vim.wasm/", "Base URL where vim.wasm is hosted")
+	flag.BoolVar(&o.debug, "debug", false, "Enable debug logging")
+	flag.BoolVar(&o.printUrl, "url", false, "Print URL to stdout instead of opening it in browser")
 	flag.Usage = usage
 	flag.Parse()
 
-	if err := run(*repo, *baseURL, *debug, *printURL); err != nil {
+	if err := run(o); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
