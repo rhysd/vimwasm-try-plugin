@@ -7,6 +7,7 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/pkg/browser"
 	"golang.org/x/oauth2"
+	"golang.org/x/xerrors"
 	"net/http"
 	"net/url"
 	"os"
@@ -54,10 +55,10 @@ func getContentsRecursive(ctx context.Context, api *github.RepositoriesService, 
 	// TODO: Consider 'ref' option
 	file, entries, res, err := api.GetContents(ctx, owner, repo, path, &github.RepositoryContentGetOptions{})
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, xerrors.Errorf("Coult not fetch /repos/%s/%s/contents for %q: %v", owner, repo, path, err)
 	}
 	if res != nil && res.StatusCode == 404 {
-		return nil, nil, fmt.Errorf("File path %q of repository \"%s/%s\" not found", path, owner, repo)
+		return nil, nil, xerrors.Errorf("File path %q of repository \"%s/%s\" not found", path, owner, repo)
 	}
 
 	files := []*github.RepositoryContent{}
@@ -82,7 +83,7 @@ func getContentsRecursive(ctx context.Context, api *github.RepositoriesService, 
 
 			fs, ds, err := getContentsRecursive(ctx, api, owner, repo, e.GetPath())
 			if err != nil {
-				return nil, nil, err
+				return nil, nil, xerrors.Errorf("Error while fetching %q: %w", path, err)
 			}
 			files = append(files, fs...)
 			dirs = append(dirs, ds...)
@@ -119,7 +120,7 @@ func dirContainsVimFile(path string, files []*github.RepositoryContent) bool {
 func run(o *cliOptions) error {
 	slug := strings.SplitN(o.repo, "/", 2)
 	if len(slug) <= 1 {
-		return fmt.Errorf("Repository %q is invalid. Please specify in user/repo format", o.repo)
+		return xerrors.Errorf("Repository %q is invalid. Please specify in user/repo format with -repo option", o.repo)
 	}
 
 	token := os.Getenv("GITHUB_TOKEN")
@@ -133,7 +134,7 @@ func run(o *cliOptions) error {
 
 	files, dirs, err := getContentsRecursive(ctx, api.Repositories, slug[0], slug[1], "")
 	if err != nil {
-		return err
+		return xerrors.Errorf("Could not fetch file entries in repo recursively: %w", err)
 	}
 
 	sortContentsByPath(dirs)
@@ -141,7 +142,7 @@ func run(o *cliOptions) error {
 
 	u, err := url.Parse(o.baseUrl)
 	if err != nil {
-		return err
+		return xerrors.Errorf("URL %q specified with -base is broken: %v", o.baseUrl, err)
 	}
 
 	params := url.Values{}
@@ -172,7 +173,11 @@ func run(o *cliOptions) error {
 		return nil
 	}
 
-	return browser.OpenURL(u.String())
+	if err := browser.OpenURL(u.String()); err != nil {
+		return xerrors.Errorf("Could not open URL with browser: %v", err)
+	}
+
+	return nil
 }
 
 const usageHeader = `Usage: vimwasm-try-plugin {flags}
@@ -200,7 +205,7 @@ func main() {
 	flag.Parse()
 
 	if err := run(o); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintf(os.Stderr, "ERROR: %+v\n", err)
 		os.Exit(1)
 	}
 }
