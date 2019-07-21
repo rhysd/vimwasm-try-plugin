@@ -55,7 +55,7 @@ func getContentsRecursive(ctx context.Context, api *github.RepositoriesService, 
 	// TODO: Consider 'ref' option
 	file, entries, res, err := api.GetContents(ctx, owner, repo, path, &github.RepositoryContentGetOptions{})
 	if err != nil {
-		return nil, nil, xerrors.Errorf("Coult not fetch /repos/%s/%s/contents for %q: %v", owner, repo, path, err)
+		return nil, nil, xerrors.Errorf("Coult not fetch /repos/%s/%s/contents for path %q: %v", owner, repo, path, err)
 	}
 	if res != nil && res.StatusCode == 404 {
 		return nil, nil, xerrors.Errorf("File path %q of repository \"%s/%s\" not found", path, owner, repo)
@@ -137,12 +137,19 @@ func run(o *cliOptions) error {
 		return xerrors.Errorf("Could not fetch file entries in repo recursively: %w", err)
 	}
 
+	if len(files) == 0 {
+		return xerrors.Errorf("Repository %q contain no Vim script file (filename ends with .vim)", o.repo)
+	}
+
 	sortContentsByPath(dirs)
 	sortContentsByPath(files)
 
 	u, err := url.Parse(o.baseUrl)
 	if err != nil {
 		return xerrors.Errorf("URL %q specified with -base is broken: %v", o.baseUrl, err)
+	}
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return xerrors.Errorf("Given URL with -base option does not have 'http' or 'https' scheme: %s", u.Scheme)
 	}
 
 	params := url.Values{}

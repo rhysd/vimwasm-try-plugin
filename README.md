@@ -49,7 +49,6 @@ All files are fetched on memory. So they are cleaned up automatically when a bro
 
 ## TODO
 
-- Add tests
 - Run CI
 - Make release
 - Add `-revision` string option to specify revision of the repository. `/repos/:owner/:repo/contents` has query parameter `ref` for it
