@@ -119,12 +119,7 @@ func dirContainsVimFile(path string, files []*github.RepositoryContent) bool {
 	return false
 }
 
-func run(o *cliOptions) error {
-	slug := strings.SplitN(o.repo, "/", 2)
-	if len(slug) <= 1 {
-		return xerrors.Errorf("Repository %q is invalid. Did you forgot giving an argument? Please specify in owner/repo format", o.repo)
-	}
-
+func fetchFilesAndDirsFromGitHub(owner, repo, ref string) ([]*github.RepositoryContent, []*github.RepositoryContent, error) {
 	token := os.Getenv("GITHUB_TOKEN")
 	ctx := context.Background()
 	client := http.DefaultClient
@@ -134,24 +129,28 @@ func run(o *cliOptions) error {
 	}
 	api := github.NewClient(client)
 
-	files, dirs, err := getContentsRecursive(ctx, api.Repositories, slug[0], slug[1], o.rev, "")
+	files, dirs, err := getContentsRecursive(ctx, api.Repositories, owner, repo, ref, "")
 	if err != nil {
-		return xerrors.Errorf("Could not fetch file entries in repo recursively: %w", err)
+		return nil, nil, xerrors.Errorf("Could not fetch file entries in repo recursively from GitHub API: %w", err)
 	}
 
 	if len(files) == 0 {
-		return xerrors.Errorf("Repository %q contain no Vim script file (filename ends with .vim)", o.repo)
+		return nil, nil, xerrors.Errorf("Repository \"%s/%s\" contain no Vim script file (filename ends with .vim)", owner, repo)
 	}
 
 	sortContentsByPath(dirs)
 	sortContentsByPath(files)
 
+	return files, dirs, nil
+}
+
+func buildURL(files, dirs []*github.RepositoryContent, o *cliOptions) (*url.URL, error) {
 	u, err := url.Parse(o.baseURL)
 	if err != nil {
-		return xerrors.Errorf("URL %q specified with -base is broken: %v", o.baseURL, err)
+		return nil, xerrors.Errorf("URL %q specified with -base is broken: %v", o.baseURL, err)
 	}
 	if u.Scheme != "http" && u.Scheme != "https" {
-		return xerrors.Errorf("Given URL with -base option does not have 'http' or 'https' scheme: %s", u.Scheme)
+		return nil, xerrors.Errorf("Given URL with -base option does not have 'http' or 'https' scheme: %q", u.Scheme)
 	}
 
 	prefix := "/usr/local/share/vim"
@@ -183,6 +182,25 @@ func run(o *cliOptions) error {
 		params.Add("file", v)
 	}
 	u.RawQuery = params.Encode()
+
+	return u, nil
+}
+
+func run(o *cliOptions) error {
+	slug := strings.SplitN(o.repo, "/", 2)
+	if len(slug) <= 1 {
+		return xerrors.Errorf("Repository %q is invalid. Did you forgot giving an argument? Please specify in owner/repo format", o.repo)
+	}
+
+	files, dirs, err := fetchFilesAndDirsFromGitHub(slug[0], slug[1], o.rev)
+	if err != nil {
+		return xerrors.Errorf("Could not fetch Vim plugin: %w", err)
+	}
+
+	u, err := buildURL(files, dirs, o)
+	if err != nil {
+		return xerrors.Errorf("Could not build URL to open: %w", err)
+	}
 
 	if o.printURL {
 		fmt.Print(u.String())
