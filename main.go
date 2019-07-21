@@ -40,6 +40,7 @@ type cliOptions struct {
 	baseURL  string
 	debug    bool
 	printURL bool
+	rev      string
 }
 
 func isVimDirPath(p string) bool {
@@ -51,9 +52,10 @@ func isVimDirPath(p string) bool {
 	return false
 }
 
-func getContentsRecursive(ctx context.Context, api *github.RepositoriesService, owner, repo, path string) ([]*github.RepositoryContent, []*github.RepositoryContent, error) {
+func getContentsRecursive(ctx context.Context, api *github.RepositoriesService, owner, repo, ref, path string) ([]*github.RepositoryContent, []*github.RepositoryContent, error) {
 	// TODO: Consider 'ref' option
-	file, entries, res, err := api.GetContents(ctx, owner, repo, path, &github.RepositoryContentGetOptions{})
+	opts := &github.RepositoryContentGetOptions{Ref: ref}
+	file, entries, res, err := api.GetContents(ctx, owner, repo, path, opts)
 	if err != nil {
 		return nil, nil, xerrors.Errorf("Coult not fetch /repos/%s/%s/contents for path %q: %v", owner, repo, path, err)
 	}
@@ -81,7 +83,7 @@ func getContentsRecursive(ctx context.Context, api *github.RepositoriesService, 
 
 			dirs = append(dirs, e)
 
-			fs, ds, err := getContentsRecursive(ctx, api, owner, repo, e.GetPath())
+			fs, ds, err := getContentsRecursive(ctx, api, owner, repo, ref, e.GetPath())
 			if err != nil {
 				return nil, nil, xerrors.Errorf("Error while fetching %q: %w", path, err)
 			}
@@ -132,7 +134,7 @@ func run(o *cliOptions) error {
 	}
 	api := github.NewClient(client)
 
-	files, dirs, err := getContentsRecursive(ctx, api.Repositories, slug[0], slug[1], "")
+	files, dirs, err := getContentsRecursive(ctx, api.Repositories, slug[0], slug[1], o.rev, "")
 	if err != nil {
 		return xerrors.Errorf("Could not fetch file entries in repo recursively: %w", err)
 	}
@@ -213,6 +215,7 @@ func main() {
 	flag.StringVar(&o.baseURL, "base", "https://rhysd.github.io/vim.wasm/", "Base URL where vim.wasm is hosted")
 	flag.BoolVar(&o.debug, "debug", false, "Enable debug logging")
 	flag.BoolVar(&o.printURL, "url", false, "Print URL to stdout instead of opening it in browser")
+	flag.StringVar(&o.rev, "revision", "", "Name of commit/branch/tag such as 'master', 'd2f17bb', 'v1.0.0'")
 	flag.BoolVar(&version, "version", false, "Print version")
 	flag.Usage = usage
 	flag.Parse()

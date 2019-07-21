@@ -12,6 +12,7 @@ func TestBuildURL(t *testing.T) {
 		repo     string
 		baseURL  string
 		debug    bool
+		rev      string
 		expected string
 	}{
 		{
@@ -35,6 +36,14 @@ func TestBuildURL(t *testing.T) {
 			debug:    true,
 			expected: `https://rhysd.github.io/vim.wasm/?debug=&dir=%2Fusr%2Flocal%2Fshare%2Fvim%2Fautoload%2Fclever_f&dir=%2Fusr%2Flocal%2Fshare%2Fvim%2Fautoload%2Fclever_f%2Fmigemo&file=%2Fusr%2Flocal%2Fshare%2Fvim%2Fautoload%2Fclever_f.vim%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Frhysd%2Fclever-f.vim%2Fmaster%2Fautoload%2Fclever_f.vim&file=%2Fusr%2Flocal%2Fshare%2Fvim%2Fautoload%2Fclever_f%2Fcompat.vim%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Frhysd%2Fclever-f.vim%2Fmaster%2Fautoload%2Fclever_f%2Fcompat.vim&file=%2Fusr%2Flocal%2Fshare%2Fvim%2Fautoload%2Fclever_f%2Fmigemo%2Fcp932.vim%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Frhysd%2Fclever-f.vim%2Fmaster%2Fautoload%2Fclever_f%2Fmigemo%2Fcp932.vim&file=%2Fusr%2Flocal%2Fshare%2Fvim%2Fautoload%2Fclever_f%2Fmigemo%2Feucjp.vim%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Frhysd%2Fclever-f.vim%2Fmaster%2Fautoload%2Fclever_f%2Fmigemo%2Feucjp.vim&file=%2Fusr%2Flocal%2Fshare%2Fvim%2Fautoload%2Fclever_f%2Fmigemo%2Futf8.vim%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Frhysd%2Fclever-f.vim%2Fmaster%2Fautoload%2Fclever_f%2Fmigemo%2Futf8.vim&file=%2Fusr%2Flocal%2Fshare%2Fvim%2Fplugin%2Fclever-f.vim%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Frhysd%2Fclever-f.vim%2Fmaster%2Fplugin%2Fclever-f.vim`,
 		},
+		{
+			what:     "revision",
+			repo:     "rhysd/clever-f.vim",
+			baseURL:  "https://rhysd.github.io/vim.wasm/",
+			debug:    false,
+			rev:      "ver1.1",
+			expected: `https://rhysd.github.io/vim.wasm/?file=%2Fusr%2Flocal%2Fshare%2Fvim%2Fautoload%2Fclever_f.vim%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Frhysd%2Fclever-f.vim%2Fver1.1%2Fautoload%2Fclever_f.vim&file=%2Fusr%2Flocal%2Fshare%2Fvim%2Fplugin%2Fclever-f.vim%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Frhysd%2Fclever-f.vim%2Fver1.1%2Fplugin%2Fclever-f.vim`,
+		},
 	} {
 		t.Run(tc.what, func(t *testing.T) {
 			f := fakeio.Stdout()
@@ -44,6 +53,7 @@ func TestBuildURL(t *testing.T) {
 				repo:     tc.repo,
 				baseURL:  tc.baseURL,
 				debug:    tc.debug,
+				rev:      tc.rev,
 				printURL: true,
 			}
 
@@ -68,6 +78,7 @@ func TestInvalidURL(t *testing.T) {
 		what     string
 		repo     string
 		baseURL  string
+		rev      string
 		expected string
 	}{
 		{
@@ -101,6 +112,12 @@ func TestInvalidURL(t *testing.T) {
 			repo:     "rhysd/vimwasm-try-plugin",
 			expected: "Repository \"rhysd/vimwasm-try-plugin\" contain no Vim script file (filename ends with .vim)",
 		},
+		{
+			what:     "invalid revision",
+			repo:     "rhysd/vimwasm-try-plugin",
+			rev:      "this-ref-does-not-exist",
+			expected: "404 No commit found for the ref this-ref-does-not-exist",
+		},
 	} {
 		t.Run(tc.what, func(t *testing.T) {
 			u := "https://rhysd.github.io/vim.wasm/"
@@ -111,6 +128,7 @@ func TestInvalidURL(t *testing.T) {
 			o := &cliOptions{
 				repo:     tc.repo,
 				baseURL:  u,
+				rev:      tc.rev,
 				printURL: true,
 			}
 
