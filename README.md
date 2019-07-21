@@ -10,7 +10,10 @@ please visit [the repository][proj].
 
 ## Installation
 
-Please build from source at this moment.
+Download and unzip an executable from [release page](https://github.com/rhysd/vimwasm-try-plugin/releases)
+for your platform and put it in some `$PATH` directory.
+
+Or build from source using Go toolchain.
 
 ```
 go get -u github.com/rhysd/vimwasm-try-plugin
