@@ -36,11 +36,12 @@ var existingDirs = map[string]struct{}{
 }
 
 type cliOptions struct {
-	repo     string
-	baseURL  string
-	debug    bool
-	printURL bool
-	rev      string
+	repo       string
+	baseURL    string
+	debug      bool
+	printURL   bool
+	rev        string
+	persistent bool
 }
 
 func isVimDirPath(p string) bool {
@@ -53,7 +54,6 @@ func isVimDirPath(p string) bool {
 }
 
 func getContentsRecursive(ctx context.Context, api *github.RepositoriesService, owner, repo, ref, path string) ([]*github.RepositoryContent, []*github.RepositoryContent, error) {
-	// TODO: Consider 'ref' option
 	opts := &github.RepositoryContentGetOptions{Ref: ref}
 	file, entries, res, err := api.GetContents(ctx, owner, repo, path, opts)
 	if err != nil {
@@ -154,6 +154,11 @@ func run(o *cliOptions) error {
 		return xerrors.Errorf("Given URL with -base option does not have 'http' or 'https' scheme: %s", u.Scheme)
 	}
 
+	prefix := "/usr/local/share/vim"
+	if o.persistent {
+		prefix = "/home/web_user/.vim"
+	}
+
 	params := url.Values{}
 	if o.debug {
 		params.Set("debug", "")
@@ -164,15 +169,17 @@ func run(o *cliOptions) error {
 		if !dirContainsVimFile(p, files) {
 			continue
 		}
-		if _, ok := existingDirs[dir.GetPath()]; ok {
-			continue
+		if !o.persistent {
+			if _, ok := existingDirs[dir.GetPath()]; ok {
+				continue
+			}
 		}
-		v := fmt.Sprintf("/usr/local/share/vim/%s", p)
+		v := fmt.Sprintf("%s/%s", prefix, p)
 		params.Add("dir", v)
 	}
 
 	for _, file := range files {
-		v := fmt.Sprintf("/usr/local/share/vim/%s=%s", file.GetPath(), file.GetDownloadURL())
+		v := fmt.Sprintf("%s/%s=%s", prefix, file.GetPath(), file.GetDownloadURL())
 		params.Add("file", v)
 	}
 	u.RawQuery = params.Encode()
@@ -216,6 +223,7 @@ func main() {
 	flag.BoolVar(&o.debug, "debug", false, "Enable debug logging")
 	flag.BoolVar(&o.printURL, "url", false, "Print URL to stdout instead of opening it in browser")
 	flag.StringVar(&o.rev, "revision", "", "Name of commit/branch/tag such as 'master', 'd2f17bb', 'v1.0.0'")
+	flag.BoolVar(&o.persistent, "persistent", false, "Use ~/.vim instead of /usr/local/share/vim for persistently installing the plugin")
 	flag.BoolVar(&version, "version", false, "Print version")
 	flag.Usage = usage
 	flag.Parse()

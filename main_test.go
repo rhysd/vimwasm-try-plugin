@@ -8,12 +8,13 @@ import (
 
 func TestBuildURL(t *testing.T) {
 	for _, tc := range []struct {
-		what     string
-		repo     string
-		baseURL  string
-		debug    bool
-		rev      string
-		expected string
+		what       string
+		repo       string
+		baseURL    string
+		debug      bool
+		rev        string
+		persistent bool
+		expected   string
 	}{
 		{
 			what:     "simplest",
@@ -44,17 +45,26 @@ func TestBuildURL(t *testing.T) {
 			rev:      "ver1.1",
 			expected: `https://rhysd.github.io/vim.wasm/?file=%2Fusr%2Flocal%2Fshare%2Fvim%2Fautoload%2Fclever_f.vim%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Frhysd%2Fclever-f.vim%2Fver1.1%2Fautoload%2Fclever_f.vim&file=%2Fusr%2Flocal%2Fshare%2Fvim%2Fplugin%2Fclever-f.vim%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Frhysd%2Fclever-f.vim%2Fver1.1%2Fplugin%2Fclever-f.vim`,
 		},
+		{
+			what:       "persistent",
+			repo:       "rhysd/clever-f.vim",
+			baseURL:    "https://rhysd.github.io/vim.wasm/",
+			debug:      false,
+			persistent: true,
+			expected:   `https://rhysd.github.io/vim.wasm/?dir=%2Fhome%2Fweb_user%2F.vim%2Fautoload&dir=%2Fhome%2Fweb_user%2F.vim%2Fautoload%2Fclever_f&dir=%2Fhome%2Fweb_user%2F.vim%2Fautoload%2Fclever_f%2Fmigemo&dir=%2Fhome%2Fweb_user%2F.vim%2Fplugin&file=%2Fhome%2Fweb_user%2F.vim%2Fautoload%2Fclever_f.vim%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Frhysd%2Fclever-f.vim%2Fmaster%2Fautoload%2Fclever_f.vim&file=%2Fhome%2Fweb_user%2F.vim%2Fautoload%2Fclever_f%2Fcompat.vim%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Frhysd%2Fclever-f.vim%2Fmaster%2Fautoload%2Fclever_f%2Fcompat.vim&file=%2Fhome%2Fweb_user%2F.vim%2Fautoload%2Fclever_f%2Fmigemo%2Fcp932.vim%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Frhysd%2Fclever-f.vim%2Fmaster%2Fautoload%2Fclever_f%2Fmigemo%2Fcp932.vim&file=%2Fhome%2Fweb_user%2F.vim%2Fautoload%2Fclever_f%2Fmigemo%2Feucjp.vim%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Frhysd%2Fclever-f.vim%2Fmaster%2Fautoload%2Fclever_f%2Fmigemo%2Feucjp.vim&file=%2Fhome%2Fweb_user%2F.vim%2Fautoload%2Fclever_f%2Fmigemo%2Futf8.vim%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Frhysd%2Fclever-f.vim%2Fmaster%2Fautoload%2Fclever_f%2Fmigemo%2Futf8.vim&file=%2Fhome%2Fweb_user%2F.vim%2Fplugin%2Fclever-f.vim%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Frhysd%2Fclever-f.vim%2Fmaster%2Fplugin%2Fclever-f.vim`,
+		},
 	} {
 		t.Run(tc.what, func(t *testing.T) {
 			f := fakeio.Stdout()
 			defer f.Restore()
 
 			o := &cliOptions{
-				repo:     tc.repo,
-				baseURL:  tc.baseURL,
-				debug:    tc.debug,
-				rev:      tc.rev,
-				printURL: true,
+				repo:       tc.repo,
+				baseURL:    tc.baseURL,
+				debug:      tc.debug,
+				rev:        tc.rev,
+				persistent: tc.persistent,
+				printURL:   true,
 			}
 
 			if err := run(o); err != nil {

@@ -53,7 +53,6 @@ All files are fetched on memory. So they are cleaned up automatically when a bro
 
 ## TODO
 
-- Add `-persistent` bool option to copy files to `~/.vim` instead of `/usr/local/share/vim`
 - Add `-local` string option to specify local directory instead of using GitHub API
 - Consider symlinks
 
