@@ -47,6 +47,13 @@ All files are fetched on memory. So they are cleaned up automatically when a bro
   are not available. For example, sign, conceal or profile.
 - [vim.wasm][] fetches all plugin files before starting Vim. Fetching many files or a large file may slows Vim start up.
 
+## TODO
+
+- Make error more comprehensive
+- Add `-revision` string option to specify revision of the repository. `/repos/:owner/:repo/contents` has query parameter `ref` for it
+- Add `-persistent` bool option to copy files to `~/.vim` instead of `/usr/local/share/vim`
+- Add `-local` string option to specify local directory instead of using GitHub API
+
 ## License
 
 This repository is distributed under [the MIT license](./LICENSE.txt).
