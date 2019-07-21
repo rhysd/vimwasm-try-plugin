@@ -1,5 +1,6 @@
 vimwasm-try-plugin
 ==================
+[![Build Status][travis-badge]][travis-ci]
 
 [`vimwasm-try-plugin`][repo] is a command line tool to open try a Vim plugin hosted on GitHub using
 [vim.wasm][]. You can instantly try Vim plugin without installing it on browser. About vim.wasm,
@@ -62,3 +63,5 @@ This repository is distributed under [the MIT license](./LICENSE.txt).
 [repo]: https://github.com/rhysd/vimwasm-try-plugin
 [vim.wasm]: https://rhysd.github.io/vim.wasm
 [proj]: https://github.com/rhysd/vim.wasm
+[travis-badge]: https://travis-ci.org/rhysd/vimwasm-try-plugin.svg?branch=master
+[travis-ci]: https://travis-ci.org/rhysd/vimwasm-try-plugin
