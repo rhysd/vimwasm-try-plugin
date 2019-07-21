@@ -207,12 +207,20 @@ func usage() {
 }
 
 func main() {
+	var version bool
+
 	o := &cliOptions{}
 	flag.StringVar(&o.baseURL, "base", "https://rhysd.github.io/vim.wasm/", "Base URL where vim.wasm is hosted")
 	flag.BoolVar(&o.debug, "debug", false, "Enable debug logging")
 	flag.BoolVar(&o.printURL, "url", false, "Print URL to stdout instead of opening it in browser")
+	flag.BoolVar(&version, "version", false, "Print version")
 	flag.Usage = usage
 	flag.Parse()
+
+	if version {
+		fmt.Println("1.0.0")
+		os.Exit(0)
+	}
 
 	if len(flag.Args()) == 0 {
 		usage()
