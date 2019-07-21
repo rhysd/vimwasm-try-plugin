@@ -120,7 +120,7 @@ func dirContainsVimFile(path string, files []*github.RepositoryContent) bool {
 func run(o *cliOptions) error {
 	slug := strings.SplitN(o.repo, "/", 2)
 	if len(slug) <= 1 {
-		return xerrors.Errorf("Repository %q is invalid. Please specify in user/repo format with -repo option", o.repo)
+		return xerrors.Errorf("Repository %q is invalid. Did you forgot giving an argument? Please specify in owner/repo format", o.repo)
 	}
 
 	token := os.Getenv("GITHUB_TOKEN")
@@ -187,13 +187,17 @@ func run(o *cliOptions) error {
 	return nil
 }
 
-const usageHeader = `Usage: vimwasm-try-plugin {flags}
+const usageHeader = `Usage: vimwasm-try-plugin [flags] 'owner/repo'
 
   vimwasm-try-plugin is a URL generator to try Vim plugin hosted on GitHub with
   https://rhysd.github.io/vim.wasm. The Vim was compiled to WebAssembly and runs
   in your browser. All plugin files will be fetched on memory and loaded by Vim.
 
   You can try Vim plugin without installing it on browser.
+
+Example: Open vim.wasm URL including clever-f.vim plugin
+
+  $ vimwasm-try-plugin 'rhysd/clever-f.vim'
 
 Flags:`
 
@@ -204,12 +208,18 @@ func usage() {
 
 func main() {
 	o := &cliOptions{}
-	flag.StringVar(&o.repo, "repo", "", "Slug ('user/repo') of your Vim plugin (required)")
 	flag.StringVar(&o.baseURL, "base", "https://rhysd.github.io/vim.wasm/", "Base URL where vim.wasm is hosted")
 	flag.BoolVar(&o.debug, "debug", false, "Enable debug logging")
 	flag.BoolVar(&o.printURL, "url", false, "Print URL to stdout instead of opening it in browser")
 	flag.Usage = usage
 	flag.Parse()
+
+	if len(flag.Args()) == 0 {
+		usage()
+		os.Exit(1)
+	}
+
+	o.repo = flag.Arg(0)
 
 	if err := run(o); err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %+v\n", err)
