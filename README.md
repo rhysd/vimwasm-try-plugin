@@ -22,13 +22,13 @@ go get -u github.com/rhysd/vimwasm-try-plugin
 ## Usage
 
 ```
-vimwasm-try-plugin -repo 'owner/name'
+vimwasm-try-plugin [flags] 'owner/name'
 ```
 
 For example,
 
 ```
-vimwasm-try-plugin -repo 'rhysd/clever-f.vim'
+vimwasm-try-plugin 'rhysd/clever-f.vim'
 ```
 
 
