@@ -42,9 +42,9 @@ func TestBuildURL(t *testing.T) {
 
 			o := &cliOptions{
 				repo:     tc.repo,
-				baseUrl:  tc.baseURL,
+				baseURL:  tc.baseURL,
 				debug:    tc.debug,
-				printUrl: true,
+				printURL: true,
 			}
 
 			if err := run(o); err != nil {
@@ -110,8 +110,8 @@ func TestInvalidURL(t *testing.T) {
 
 			o := &cliOptions{
 				repo:     tc.repo,
-				baseUrl:  u,
-				printUrl: true,
+				baseURL:  u,
+				printURL: true,
 			}
 
 			err := run(o)

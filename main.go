@@ -37,9 +37,9 @@ var existingDirs = map[string]struct{}{
 
 type cliOptions struct {
 	repo     string
-	baseUrl  string
+	baseURL  string
 	debug    bool
-	printUrl bool
+	printURL bool
 }
 
 func isVimDirPath(p string) bool {
@@ -144,9 +144,9 @@ func run(o *cliOptions) error {
 	sortContentsByPath(dirs)
 	sortContentsByPath(files)
 
-	u, err := url.Parse(o.baseUrl)
+	u, err := url.Parse(o.baseURL)
 	if err != nil {
-		return xerrors.Errorf("URL %q specified with -base is broken: %v", o.baseUrl, err)
+		return xerrors.Errorf("URL %q specified with -base is broken: %v", o.baseURL, err)
 	}
 	if u.Scheme != "http" && u.Scheme != "https" {
 		return xerrors.Errorf("Given URL with -base option does not have 'http' or 'https' scheme: %s", u.Scheme)
@@ -175,7 +175,7 @@ func run(o *cliOptions) error {
 	}
 	u.RawQuery = params.Encode()
 
-	if o.printUrl {
+	if o.printURL {
 		fmt.Print(u.String())
 		return nil
 	}
@@ -205,9 +205,9 @@ func usage() {
 func main() {
 	o := &cliOptions{}
 	flag.StringVar(&o.repo, "repo", "", "Slug ('user/repo') of your Vim plugin (required)")
-	flag.StringVar(&o.baseUrl, "base", "https://rhysd.github.io/vim.wasm/", "Base URL where vim.wasm is hosted")
+	flag.StringVar(&o.baseURL, "base", "https://rhysd.github.io/vim.wasm/", "Base URL where vim.wasm is hosted")
 	flag.BoolVar(&o.debug, "debug", false, "Enable debug logging")
-	flag.BoolVar(&o.printUrl, "url", false, "Print URL to stdout instead of opening it in browser")
+	flag.BoolVar(&o.printURL, "url", false, "Print URL to stdout instead of opening it in browser")
 	flag.Usage = usage
 	flag.Parse()
 
