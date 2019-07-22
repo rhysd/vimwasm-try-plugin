@@ -280,7 +280,7 @@ func main() {
 	flag.Parse()
 
 	if version {
-		fmt.Println("1.1.0")
+		fmt.Println("1.2.0")
 		os.Exit(0)
 	}
 
