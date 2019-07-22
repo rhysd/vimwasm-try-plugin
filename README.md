@@ -39,11 +39,11 @@ https://rhysd.github.io/vim.wasm/?dir=%2Fusr%2Flocal%2Fshare%2Fvim%2Fautoload%2F
 You can try [clever-f.vim](https://github.com/rhysd/clever-f.vim) in your browser without installing it.
 
 All files are fetched on memory. So they are cleaned up automatically when a browser tab is closed.
-[vim.wasm][proj] is a Vim fork for Web
+[vim.wasm][proj] is a Vim fork to run it on browser by compiling it to WebAssembly.
 
 ## Limitation
 
-[vim.wasm][proj] is a Vim compiled to WebAssembly. So entire Vim is running on your browser and has some limitation.
+[vim.wasm][proj] is a Vim compiled to WebAssembly. So Vim is running on your browser and has some limitation.
 
 - Shell commands are not available. So if the Vim plugin uses `system()` or other stuffs which try
   to execute shell commands, it does not work.
