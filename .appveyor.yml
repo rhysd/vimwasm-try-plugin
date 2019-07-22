@@ -3,6 +3,8 @@ clone_depth: 1
 clone_folder: c:\gopath\src\github.com\rhysd\vimwasm-try-plugin
 environment:
     GOPATH: c:\gopath
+init:
+    - set PATH=C:\msys64\mingw64\bin;%PATH%
 install:
     - echo %PATH%
     - echo %GOPATH%
