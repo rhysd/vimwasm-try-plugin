@@ -42,6 +42,7 @@ type cliOptions struct {
 	printURL   bool
 	rev        string
 	persistent bool
+	extraArgs  []string
 }
 
 func isVimDirPath(p string) bool {
@@ -181,6 +182,11 @@ func buildURL(files, dirs []*github.RepositoryContent, o *cliOptions) (*url.URL,
 		v := fmt.Sprintf("%s/%s=%s", prefix, file.GetPath(), file.GetDownloadURL())
 		params.Add("file", v)
 	}
+
+	for _, a := range o.extraArgs {
+		params.Add("arg", a)
+	}
+
 	u.RawQuery = params.Encode()
 
 	return u, nil
@@ -214,23 +220,50 @@ func run(o *cliOptions) error {
 	return nil
 }
 
-const usageHeader = `Usage: vimwasm-try-plugin [flags] 'owner/repo'
+const usageHeader = `Usage: vimwasm-try-plugin [flags] 'owner/repo' [-- {args}]
 
   vimwasm-try-plugin is a URL generator to try Vim plugin hosted on GitHub with
   https://rhysd.github.io/vim.wasm. The Vim was compiled to WebAssembly and runs
   in your browser. All plugin files will be fetched on memory and loaded by Vim.
 
-  You can try Vim plugin without installing it on browser.
+  You can try Vim plugin and colorscheme without installing it on browser.
+
+  After '--', extra arguments can be specified. They are passed to command line
+  arguments of Vim execution.
 
 Example: Open vim.wasm URL including clever-f.vim plugin
 
   $ vimwasm-try-plugin 'rhysd/clever-f.vim'
+
+Example: Load and apply gruvbox colorscheme
+
+  $ vimwasm-try-plugin 'morhetz/gruvbox' -- -c colorscheme\ gruvbox
 
 Flags:`
 
 func usage() {
 	fmt.Fprintln(os.Stderr, usageHeader)
 	flag.PrintDefaults()
+}
+
+func parseArgs(args []string) (string, []string, error) {
+	var extra []string
+
+	// Separate arguments into mandatory arguments and extra arguments
+	//   ['u/r', '--', 'foo'] => ['u/r'], ['foo']
+	for i, a := range args {
+		if a == "--" {
+			extra = args[i+1:]
+			args = args[:i]
+			break
+		}
+	}
+
+	if len(args) != 1 {
+		return "", nil, xerrors.Errorf("One 'owner/repo' must be specified as first argument but got %d argument(s). Please read -help output", len(args))
+	}
+
+	return args[0], extra, nil
 }
 
 func main() {
@@ -251,12 +284,14 @@ func main() {
 		os.Exit(0)
 	}
 
-	if len(flag.Args()) == 0 {
-		usage()
+	repo, extra, err := parseArgs(flag.Args())
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "ERROR: %+v\n", err)
 		os.Exit(1)
 	}
 
-	o.repo = flag.Arg(0)
+	o.repo = repo
+	o.extraArgs = extra
 
 	if err := run(o); err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %+v\n", err)
