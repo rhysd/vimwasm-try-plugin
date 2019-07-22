@@ -1,8 +1,16 @@
+<a name="v1.2.0"></a>
+# [v1.2.0](https://github.com/rhysd/vimwasm-try-plugin/releases/tag/v1.2.0) - 22 Jul 2019
+
+- **New:** Arguments after `--` argument are passed as Vim command line arguments. Please see an example in README for actual usage.
+
+[Changes][v1.2.0]
+
+
 <a name="v1.1.0"></a>
 # [v1.1.0](https://github.com/rhysd/vimwasm-try-plugin/releases/tag/v1.1.0) - 21 Jul 2019
 
-- **Add:** `-revision {rev}` option to fetch specific revision. `{rev}` can be commit (e.g. d2f17bb), tag (e.g. `v1.0.0`) or branch (e.g. `master`)
-- **Add:** `persistent` option to fetch files to persistent storage. Files are fetched into `~/.vim` instead of `/usr/local/share/vim`. `~/.vim` is stored in Indexed DB persistently so it does not require fetching again on next time
+- **Add:** `-revision {rev}` option to fetch specific revision. `{rev}` can be commit (e.g. `d2f17bb`), tag (e.g. `v1.0.0`) or branch (e.g. `master`)
+- **Add:** `-persistent` option to fetch files to persistent storage. Files are fetched into `~/.vim` instead of `/usr/local/share/vim`. `~/.vim` is stored in Indexed DB persistently so it does not require fetching again on next time
 
 [Changes][v1.1.0]
 
@@ -15,6 +23,7 @@ First release :tada:
 [Changes][v1.0.0]
 
 
+[v1.2.0]: https://github.com/rhysd/vimwasm-try-plugin/compare/v1.1.0...v1.2.0
 [v1.1.0]: https://github.com/rhysd/vimwasm-try-plugin/compare/v1.0.0...v1.1.0
 [v1.0.0]: https://github.com/rhysd/vimwasm-try-plugin/tree/v1.0.0
 
